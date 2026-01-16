@@ -1,0 +1,82 @@
+name: "hytale-server"
+
+services:
+  hytale-server:
+    image: j4nis05/hytale-server:latest
+    container_name: hytale-server
+    restart: unless-stopped
+    
+    ports:
+      - "5520:5520/udp"
+    
+    # Environment variables for server configuration
+    environment:
+      - HY_SERVER_ADDRESS=0.0.0.0     # Server bind address (default: 0.0.0.0)
+      - HY_SERVER_PORT=5520           # Server port (default: 5520)
+      - HY_ACCEPT_EARLY_PLUGINS=false # Accept early plugins - unsupported, may cause stability issues (default: false)
+      - HY_ALLOW_OP=false             # Allow operator commands (default: false)
+      - HY_SINGLEPLAYER=false         # Singleplayer mode (default: false)
+      - HY_BACKUP_FREQUENCY=30        # Backup frequency in minutes (default: 30)
+      - HY_BACKUP_MAX_COUNT=5         # Maximum number of backups to retain (default: 5)
+    
+    volumes:
+      - hytale-downloader:/downloader # IMPORTANT: Mount credentials file here for persistent authentication
+      - hytale-server:/server         # Server runtime: HytaleServer.jar and related files
+      - hytale-data:/data             # Data directory: Assets.zip, worlds, configs, logs, saves
+      - hytale-backups:/backups       # Backup storage
+      - hytale-mods:/mods             # Mods directory
+      
+      # Optional: Bind-mount credentials file for persistent downloader auth
+      # - ./credentials/.hytale-downloader-credentials.json:/downloader/.hytale-downloader-credentials.json
+    
+    # Interactive mode for initial authentication
+    stdin_open: true
+    tty: true
+
+# Alternative: Direct folder path mounts (recommended for game servers)
+# Create these directories before starting: mkdir -p /docker/games/hytale/{downloader,server,data,backups,mods}
+volumes:
+  hytale-downloader:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /docker/games/hytale/downloader
+  hytale-server:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /docker/games/hytale/server
+  hytale-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /docker/games/hytale/data
+  hytale-backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /docker/games/hytale/backups
+  hytale-mods:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /docker/games/hytale/mods
+
+
+# Named volumes for data persistence
+# volumes:
+#   hytale-downloader:
+#     driver: local
+#   hytale-server:
+#     driver: local
+#   hytale-data:
+#     driver: local
+#   hytale-backups:
+#     driver: local
+#   hytale-mods:
+#     driver: local
